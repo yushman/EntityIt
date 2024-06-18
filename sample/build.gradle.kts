@@ -3,7 +3,7 @@ plugins {
     id("com.google.devtools.ksp") version "1.9.21-1.0.16"
 }
 
-group = "ru.tomindapps"
+group = "io.github.yushman"
 
 dependencies {
     ksp(project(":entityit"))

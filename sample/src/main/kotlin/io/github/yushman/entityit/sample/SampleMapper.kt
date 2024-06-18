@@ -1,6 +1,6 @@
-package ru.tomindapps.entityit.sample
+package io.github.yushman.entityit.sample
 
-import ru.tomindapps.entityit.mapper.EntityMapper
+import io.github.yushman.entityit.mapper.EntityMapper
 
 class SampleMapper: EntityMapper<Long, Double> {
     override fun mapDomainToEntity(domain: Long): Double {

@@ -1,6 +1,6 @@
-package ru.tomindapps.entityit.sample
+package io.github.yushman.entityit.sample
 
-import ru.tomindapps.entityit.annotation.Entity
+import io.github.yushman.entityit.annotation.Entity
 
 @Entity(
     kotlinSerializable = false,

@@ -1,4 +1,4 @@
-package ru.tomindapps.entityit.mapper
+package io.github.yushman.entityit.mapper
 
 interface EntityMapper<Domain, Entity>{
     fun mapDomainToEntity(domain: Domain): Entity

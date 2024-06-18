@@ -1,4 +1,4 @@
-package ru.tomindapps.entityit.processor
+package io.github.yushman.entityit.processor
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 

@@ -1,4 +1,4 @@
-package ru.tomindapps.entityit.processor
+package io.github.yushman.entityit.processor
 
 data class SourceMeta(
     val kotlinSerializable: Boolean,

@@ -1,4 +1,4 @@
-package ru.tomindapps.entityit.processor
+package io.github.yushman.entityit.processor
 
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
@@ -25,8 +25,8 @@ internal class EntityCodeGenerator(
         val entityName = sourceName + "Entity"
         val mappersName = sourceName + "Mappers"
 
-        val sourceClass = classDeclaration.toClassName()
         val entityClass = ClassName(packageName, entityName)
+        val sourceClass = classDeclaration.toClassName()
         val mappersClass = ClassName(packageName, mappersName)
 
         val entityConstructorBuilder = FunSpec.constructorBuilder()
@@ -142,7 +142,7 @@ internal class EntityCodeGenerator(
         sourceMeta: SourceMeta,
         entityName: String,
         packageName: String,
-        sourceClass: ClassName,
+        sourceClass: TypeName,
         entityClass: ClassName,
         entityConstructorBuilder: FunSpec.Builder,
         entityProperties: MutableList<PropertySpec>,
@@ -196,14 +196,5 @@ internal class EntityCodeGenerator(
 
     private fun String.replaceDots(): String {
         return this.replace(".", "")
-    }
-
-    private companion object {
-        private const val DEFAULT_STR = "default"
-        private const val CONFIG_STR = "config"
-        private const val ENTITY_STR = "entity"
-        private const val FACTORY_STR = "factory"
-        private const val CURRENT_STR = "current"
-        private const val LOCALFEATUREFLAG_STR = "localFeatureFlag"
     }
 }

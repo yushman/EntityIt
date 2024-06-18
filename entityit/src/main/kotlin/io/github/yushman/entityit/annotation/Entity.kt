@@ -1,6 +1,6 @@
-package ru.tomindapps.entityit.annotation
+package io.github.yushman.entityit.annotation
 
-import ru.tomindapps.entityit.mapper.EntityMapper
+import io.github.yushman.entityit.mapper.EntityMapper
 import kotlin.reflect.KClass
 
 @Retention(AnnotationRetention.RUNTIME)
