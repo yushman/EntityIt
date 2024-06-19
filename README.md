@@ -18,6 +18,7 @@ plugins{
 
 dependencies {
     // ...
+    ksp(fileTree("libs"){ include("*.jar")})
     implementation(fileTree("libs"){ include("*.jar")}))
     // MAVEN TBD...
     // ksp("ru.tomindapps.enityit:$version")
