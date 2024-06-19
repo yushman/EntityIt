@@ -7,7 +7,7 @@ code.
 
 ## Installation
 
-Copy artifact in yours project/libs folder
+Copy repos.zip in yours project folder
 
 ```kotlin
 // in build.gradle.kts module file
@@ -15,14 +15,15 @@ plugins{
     // ...
     id("com.google.devtools.ksp") version "1.9.21-1.0.16" // KSP support, version = kotlin plugin version
 }
-
+repositories{
+    maven{
+        url = uri("repos")
+    }
+}
 dependencies {
     // ...
-    ksp(fileTree("libs"){ include("*.jar")})
-    implementation(fileTree("libs"){ include("*.jar")}))
-    // MAVEN TBD...
-    // ksp("ru.tomindapps.enityit:$version")
-    // implementation("ru.tomindapps.enityit:$version")
+    ksp("ru.tomindapps.enityit:$version")
+    implementation("ru.tomindapps.enityit:$version")
 }
 ```
 
