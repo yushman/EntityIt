@@ -7,6 +7,8 @@ code.
 
 ## Installation
 
+Copy artifact in yours project/libs folder
+
 ```kotlin
 // in build.gradle.kts module file
 plugins{
@@ -16,8 +18,10 @@ plugins{
 
 dependencies {
     // ...
-    ksp("ru.tomindapps.enityit:$version")
-    implementation("ru.tomindapps.enityit:$version")
+    implementation(fileTree("libs"){ include("*.jar")}))
+    // MAVEN TBD...
+    // ksp("ru.tomindapps.enityit:$version")
+    // implementation("ru.tomindapps.enityit:$version")
 }
 ```
 
