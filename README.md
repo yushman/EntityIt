@@ -7,7 +7,7 @@ code.
 
 ## Installation
 
-**Copy repos.zip from releases in yours project folder**
+**Extract repos.zip from releases in yours project folder**
 
 ```kotlin
 // in build.gradle.kts module file
