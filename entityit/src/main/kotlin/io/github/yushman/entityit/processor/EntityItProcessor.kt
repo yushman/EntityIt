@@ -1,4 +1,4 @@
-package ru.tomindapps.entityit.processor
+package io.github.yushman.entityit.processor
 
 import com.google.devtools.ksp.isInternal
 import com.google.devtools.ksp.processing.CodeGenerator
@@ -10,7 +10,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.validate
-import ru.tomindapps.entityit.annotation.Entity
+import io.github.yushman.entityit.annotation.Entity
 
 internal class EntityItProcessor(
     codeGenerator: CodeGenerator,
