@@ -1,9 +1,10 @@
-import java.net.URI
 import java.util.*
+import com.vanniktech.maven.publish.KotlinJvm
+import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     kotlin("jvm") version "1.9.21"
-    id("maven-publish")
+    id("com.vanniktech.maven.publish") version "0.29.0"
     id("signing")
 }
 
@@ -38,65 +39,43 @@ tasks {
     }
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("release") {
-            groupId = pGroupId
-            artifactId = pArtifactId
-            version = pVersion
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
+    configure(KotlinJvm(sourcesJar = true))
+    coordinates(pGroupId, pArtifactId, pVersion)
 
-            from(components["java"])
-            artifact(sourcesArtifact)
-
-            with(pom) {
-                name = pArtifactId
-                description = "Java lib to generate Entity classes via ksp"
-                url = "https://github.com/yushman/EntityIt"
-//                withXml {
-//                    val root = asNode()
-//                    root.appendNode("name", )
-//                    root.appendNode("description", "Java lib to generate Entity classes via ksp")
-//                    root.appendNode("url", "https://github.com/yushman/EntityIt")
-//                }
-
-                licenses {
-                    license {
-                        name = "MIT"
-                        url = "https://opensource.org/licenses/MIT"
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = "yushman"
-                        name = "Ivan Yush"
-                        email = "tomindapps@gmail.com"
-                    }
-                }
-
-                scm {
-                    developerConnection = "scm:git:ssh://github.com/yushman/EntityIt.git"
-                    url = "https://github.com/yushman/EntityIt"
-                }
+    pom {
+        name.set("Entity It")
+        description.set("Java lib to generate Entity classes via ksp")
+        inceptionYear.set("2024")
+        url.set("https://github.com/yushman/EntityIt")
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://opensource.org/licenses/MIT")
+                distribution.set("https://opensource.org/licenses/MIT")
             }
         }
-    }
-    repositories {
-
-        maven {
-            name = "sonatype"
-            url = URI.create("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = properties["sona-usr"] as String
-                password = properties["sona-psw"] as String
+        developers {
+            developer {
+                id.set("yushman")
+                name.set("Ivan Yush")
+                url.set("https://github.com/yushman/")
             }
+        }
+        scm {
+            url.set("https://github.com/yushman/EntityIt/")
+            connection.set("scm:git:ssh://github.com/yushman/EntityIt.git")
+            developerConnection.set("scm:git:ssh://github.com/yushman/EntityIt.git")
         }
     }
 }
 
 signing {
+    useInMemoryPgpKeys(
+        properties["signing.key"] as String,
+        properties["signing.password"] as String,
+    )
     sign(publishing.publications)
 }
-
-tasks.getByName("publishReleasePublicationToSonatypeRepository").dependsOn("assemble", "sourcesJar")

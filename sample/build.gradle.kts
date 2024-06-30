@@ -6,7 +6,7 @@ plugins {
 group = "io.github.yushman"
 
 dependencies {
-    ksp(project(":entityit"))
+    ksp("io.github.yushman:entityit:0.0.1")
 
-    implementation(project(":entityit"))
+    implementation("io.github.yushman:entityit:0.0.1")
 }

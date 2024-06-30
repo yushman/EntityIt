@@ -1,5 +1,6 @@
 # Entity It
-
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.yushman/entityit)](https://repo1.maven.org/maven2/io/github/yushman/entityit/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ## KSP processor that's generate entities and mappers for domain classes
 
 Generates `data class SampleClassEntity(...)` from any domain `SampleClass` with two-way mappers, avoiding boilerplate
@@ -7,23 +8,17 @@ code.
 
 ## Installation
 
-**Extract repos.zip from releases in yours project folder**
-
 ```kotlin
 // in build.gradle.kts module file
 plugins{
     // ...
     id("com.google.devtools.ksp") version "1.9.21-1.0.16" // KSP support, version = kotlin plugin version
 }
-repositories{
-    maven{
-        url = uri("repos")
-    }
-}
+
 dependencies {
     // ...
-    ksp("ru.tomindapps.enityit:$version")
-    implementation("ru.tomindapps.enityit:$version")
+    ksp("io.github.yushman:entityit:$version")
+    implementation("io.github.yushman:entityit:$version")
 }
 ```
 
