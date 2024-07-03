@@ -5,12 +5,10 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
-import com.google.devtools.ksp.symbol.KSAnnotated
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
 import io.github.yushman.entityit.annotation.Entity
+import io.github.yushman.entityit.ext.toMeta
 
 internal class EntityItProcessor(
     codeGenerator: CodeGenerator,
@@ -47,6 +45,7 @@ internal class EntityItProcessor(
         } else {
             this.simpleName.getShortName()
         }
+        val isNullable = this.type.resolve().isMarkedNullable
         val mapper =
             mapperAnnotation?.arguments?.first()?.value?.let { it as? KSType? }?.declaration as? KSClassDeclaration
         // TODO Add inheritance
@@ -54,22 +53,27 @@ internal class EntityItProcessor(
         //     this.parentDeclaration?.annotations?.any { it.shortName.asString() == Entity::class.simpleName } == true
         return PropertyMeta(
             resultName = name,
-            isNotNull = isNotNull,
+            isNullable = isNullable,
+            isNotNullAnnotated = isNotNull,
             mapper = mapper,
+        )
+    }
+
+    private fun KSClassDeclaration.getMeta(): SourceMeta {
+        val annotation = this.annotations.first { it.shortName.asString() == Entity::class.simpleName }
+        val params = annotation.arguments
+        val kotlinSerializable = params.first { it.name?.asString() == "kotlinSerializable" }.value as Boolean
+        val nullability = (params.first { it.name?.asString() == "nullability" }.value as KSType).declaration.simpleName.asString()
+        val generateMappers = params.first { it.name?.asString() == "generateMappers" }.value as Boolean
+
+        logger.info("nullability: $nullability")
+        return SourceMeta(
+            kotlinSerializable = kotlinSerializable,
+            nullability = nullability.toMeta(),
+            generateMappers = generateMappers,
+            isInternal = this.isInternal(),
         )
     }
 }
 
-private fun KSClassDeclaration.getMeta(): SourceMeta {
-    val annotation = this.annotations.first { it.shortName.asString() == Entity::class.simpleName }
-    val params = annotation.arguments
-    val kotlinSerializable = params.first { it.name?.asString() == "kotlinSerializable" }.value as Boolean
-    val nullableValues = params.first { it.name?.asString() == "nullableValues" }.value as Boolean
-    val generateMappers = params.first { it.name?.asString() == "generateMappers" }.value as Boolean
-    return SourceMeta(
-        kotlinSerializable = kotlinSerializable,
-        nullableValues = nullableValues,
-        generateMappers = generateMappers,
-        isInternal = this.isInternal(),
-    )
-}
+
