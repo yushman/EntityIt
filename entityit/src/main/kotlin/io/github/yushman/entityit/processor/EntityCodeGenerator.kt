@@ -5,7 +5,11 @@ import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.KSType
 import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.jvm.jvmSuppressWildcards
+import com.squareup.kotlinpoet.ksp.TypeParameterResolver
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
@@ -37,47 +41,27 @@ internal class EntityCodeGenerator(
         meta.forEach { (property, propertyMeta) ->
             val resultName = propertyMeta.resultName
             val propName = property.simpleName.asString()
-            val type = property.type.toTypeName()
+            val type = property.type.resolve().toTypeName()
             val entityMapper = propertyMeta.mapper
             entityProperties.add(
                 PropertySpec.builder(resultName, type.copy(nullable = true)).initializer(resultName).build()
             )
-            if (entityMapper != null && sourceMeta.generateMappers) {
-                val mapperType = entityMapper.getAllFunctions().toList()[1].parameters.first().type.toTypeName()
-                val mapperName = entityMapper.toClassName().canonicalName.replaceDots()
-                val resultType = if (sourceMeta.nullableValues && !propertyMeta.isNotNull) mapperType.copy(nullable = true) else mapperType
-                entityConstructorBuilder.addParameter(
-                    ParameterSpec.builder(resultName, resultType)
-                        .apply { if (sourceMeta.nullableValues && !propertyMeta.isNotNull) defaultValue("null") }
-                        .build(),
-                )
-                entityProperties.add(
-                    PropertySpec.builder(resultName, resultType).initializer(resultName).build(),
-                )
-                toDomainMapperStatements.addStatement(
-                    "$propName = %T.$mapperName.mapEntityToDomain($resultName!!),", // TODO add default implementations
-                    mappersClass,
-                )
-                toEntityStatements.addStatement(
-                    "$resultName = %T.$mapperName.mapDomainToEntity($propName),",
-                    mappersClass
-                )
-            } else {
-                val resultType = if (sourceMeta.nullableValues && !propertyMeta.isNotNull) type.copy(nullable = true) else type
-                entityConstructorBuilder.addParameter(
-                    ParameterSpec.builder(resultName, resultType)
-                        .apply { if (sourceMeta.nullableValues  && !propertyMeta.isNotNull) defaultValue("null") }
-                        .build(),
-                )
-                entityProperties.add(PropertySpec.builder(resultName, resultType).initializer(resultName).build())
-                if (sourceMeta.generateMappers) {
-                    toDomainMapperStatements.addStatement(
-                        "$propName = $resultName!!,",
-                        sourceClass
-                    ) // TODO add default implementations
-                    toEntityStatements.addStatement("$resultName = $propName,")
-                }
-            }
+            addMapperStatements(
+                entityConstructorBuilder,
+                entityProperties,
+                toDomainMapperStatements,
+                toEntityStatements,
+                property,
+                propName,
+                propertyMeta,
+                sourceMeta,
+                resultName,
+                entityMapper,
+                mappersClass,
+                type,
+                sourceClass,
+            )
+
         }
 
         if (sourceMeta.generateMappers) {
@@ -103,6 +87,70 @@ internal class EntityCodeGenerator(
         )
     }
 
+    private fun addMapperStatements(
+        entityConstructorBuilder: FunSpec.Builder,
+        entityProperties: MutableList<PropertySpec>,
+        toDomainMapperStatements: CodeBlock.Builder,
+        toEntityStatements: CodeBlock.Builder,
+        property: KSPropertyDeclaration,
+        propName: String,
+        propertyMeta: PropertyMeta,
+        sourceMeta: SourceMeta,
+        resultName: String,
+        entityMapper: KSClassDeclaration?,
+        mappersClass: ClassName,
+        type: TypeName,
+        sourceClass: ClassName,
+    ) {
+        val isNullableProperty = isNullableProperty(sourceMeta, propertyMeta)
+
+        if (entityMapper != null && sourceMeta.generateMappers) {
+            val mapperType = entityMapper.getAllFunctions().toList()[1].parameters.first().type.resolve().toTypeName()
+            val mapperName = entityMapper.toClassName().canonicalName.replaceDots()
+            val resultType =
+                if (isNullableProperty) {
+                    mapperType.copy(nullable = true)
+                } else {
+                    mapperType
+                }
+            val nullabilityOption = isNullableProperty.getNullabilityOption { resultType.relaxedDefaultString()?.let { " ?: $it" } ?: "!!" }
+            entityConstructorBuilder.addParameter(
+                ParameterSpec.builder(resultName, resultType)
+                    .apply { if (isNullableProperty) defaultValue("null") }
+                    .build(),
+            )
+            toDomainMapperStatements.addStatement(
+                "$propName = %T.$mapperName.mapEntityToDomain($resultName$nullabilityOption),",
+                mappersClass,
+            )
+            entityProperties.add(
+                PropertySpec.builder(resultName, resultType).initializer(resultName).build(),
+            )
+
+            toEntityStatements.addStatement(
+                "$resultName = %T.$mapperName.mapDomainToEntity($propName),",
+                mappersClass
+            )
+        } else {
+            val resultType =
+                if (isNullableProperty) type.copy(nullable = true) else type
+            val nullabilityOption = isNullableProperty.getNullabilityOption { resultType.relaxedDefaultString()?.let { " ?: $it" } ?: "!!" }
+            entityConstructorBuilder.addParameter(
+                ParameterSpec.builder(resultName, resultType)
+                    .apply { if (isNullableProperty) defaultValue("null") }
+                    .build(),
+            )
+            entityProperties.add(PropertySpec.builder(resultName, resultType).initializer(resultName).build())
+            if (sourceMeta.generateMappers) {
+                toDomainMapperStatements.addStatement(
+                    "$propName = $resultName$nullabilityOption,",
+                    sourceClass
+                ) // TODO add default implementations
+                toEntityStatements.addStatement("$resultName = $propName,")
+            }
+        }
+    }
+
     private fun generateObjectMappers(
         sourceMeta: SourceMeta,
         packageName: String,
@@ -121,7 +169,7 @@ internal class EntityCodeGenerator(
         resultMap.forEach {
             propertySpecs.add(
                 PropertySpec.builder(it.key, it.value)
-                    .apply { if (sourceMeta.isInternal) addModifiers(KModifier.INTERNAL)}
+                    .apply { if (sourceMeta.isInternal) addModifiers(KModifier.INTERNAL) }
                     .initializer("%T()", it.value)
                     .build(),
             )
@@ -152,7 +200,7 @@ internal class EntityCodeGenerator(
         val serializableAnnotation = ClassName("kotlinx.serialization", "Serializable")
 
         val toEntityMapper = FunSpec.builder("toEntity")
-            .apply { if (sourceMeta.isInternal) addModifiers(KModifier.INTERNAL)}
+            .apply { if (sourceMeta.isInternal) addModifiers(KModifier.INTERNAL) }
             .receiver(sourceClass)
             .returns(entityClass)
             .addCode("return %T(\n", entityClass)
@@ -194,7 +242,57 @@ internal class EntityCodeGenerator(
 
     }
 
+    private fun isNullableProperty(sourceMeta: SourceMeta, propertyMeta: PropertyMeta): Boolean {
+        return (sourceMeta.nullability == SourceMeta.Nullability.FULL && !propertyMeta.isNotNullAnnotated)
+                || (sourceMeta.nullability == SourceMeta.Nullability.TRANSIENT && propertyMeta.isNullable && !propertyMeta.isNotNullAnnotated)
+    }
+
+    private fun Boolean.getNullabilityOption(action: () -> String): String {
+        return if (this) (action()) else ""
+    }
+
     private fun String.replaceDots(): String {
         return this.replace(".", "")
     }
+
+    private fun TypeName.relaxedDefaultString(): String? {
+        val tnNotNull = this.copy(nullable = false)
+        return when (tnNotNull) {
+            CHAR -> "\'\\u0000\'"
+            CHAR_SEQUENCE,
+                CHAR_ARRAY,
+            STRING -> "\"\""
+
+            U_BYTE::class.asTypeName(),
+            U_SHORT::class.asTypeName(),
+            U_INT::class.asTypeName(),
+            BYTE::class.asTypeName(),
+            SHORT::class.asTypeName(),
+            INT::class.asTypeName() -> "0"
+
+            U_LONG::class.asTypeName(),
+            LONG::class.asTypeName() -> "0L"
+
+            FLOAT::class.asTypeName() -> "0f"
+            DOUBLE::class.asTypeName() -> "0.0"
+            BOOLEAN::class.asTypeName() -> "false"
+
+            else -> null
+        } ?: when((tnNotNull as? ParameterizedTypeName)?.rawType){
+            ARRAY -> "emptyArray()"
+            COLLECTION,
+                MUTABLE_COLLECTION,
+                ITERABLE,
+                MUTABLE_ITERABLE,
+            LIST,
+            MUTABLE_LIST -> "ArrayList()"
+            MAP,
+            MUTABLE_MAP -> "HashMap()"
+            SET,
+            MUTABLE_SET -> "HashSet()"
+            else -> null
+        }
+    }
+
+    private fun KSPropertyDeclaration.resolveType() = this.type.resolve()
 }

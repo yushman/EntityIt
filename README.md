@@ -24,6 +24,8 @@ dependencies {
 
 ## Usage
 
+You can see **sample** folder for usage
+
 Define domain class and annotate in with `@Entity`  
 Customize the Entity class with other annotations and parameters
 
@@ -45,11 +47,11 @@ internal data class SampleClass(
 
 Customizing source class annotation `@Entity`  
 `kotlinSerializable` - adds `kotlinx.serialization.Serializable` annotation to result class, default - `true`  
-`nullableValues` - make result class values nullable and adds default `= null` parameter, default - `true`  
+`nullability` - make result class values nullable and adds default `= null` parameter, or inherit nullability from source class, default - `true`  
 `generateMappers` - generates `fun Entity.toDomain(): Domain` and `fun Domain.toEntity(): Entity` annotation to result
 file, default - `true`  
 
-Customizing source file values  
+Customizing source class values  
 `@Entity.NotNull` - value mast not be null in result class  
 `@Entity.Named("name")` - changes the name of the value in result class  
 `@Entity.@Entity.MapWith(in EntityMapper::class)` - maps the result values with defined mapper in result class  

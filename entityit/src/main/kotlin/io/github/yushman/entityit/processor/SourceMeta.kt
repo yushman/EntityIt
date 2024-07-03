@@ -1,8 +1,10 @@
 package io.github.yushman.entityit.processor
 
-data class SourceMeta(
+internal data class SourceMeta(
     val kotlinSerializable: Boolean,
-    val nullableValues: Boolean,
+    val nullability: Nullability,
     val generateMappers: Boolean,
     val isInternal: Boolean,
-)
+){
+    enum class Nullability { NONE, TRANSIENT, FULL }
+}
