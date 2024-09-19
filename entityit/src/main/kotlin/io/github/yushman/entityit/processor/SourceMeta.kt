@@ -6,5 +6,5 @@ internal data class SourceMeta(
     val generateMappers: Boolean,
     val isInternal: Boolean,
 ){
-    enum class Nullability { NONE, TRANSIENT, FULL }
+    enum class Nullability { TRANSIENT, FULL }
 }

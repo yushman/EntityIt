@@ -6,6 +6,6 @@ internal data class PropertyMeta(
     val resultName: String,
     val isNullable: Boolean,
     val isNotNullAnnotated: Boolean,
-//    val isEntityAnnotated: Boolean,
+    val isEntityAnnotated: Boolean,
     val mapper: KSClassDeclaration?,
 )

@@ -5,7 +5,10 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
-import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.validate
 import io.github.yushman.entityit.annotation.Entity
 import io.github.yushman.entityit.ext.toMeta
@@ -48,13 +51,13 @@ internal class EntityItProcessor(
         val isNullable = this.type.resolve().isMarkedNullable
         val mapper =
             mapperAnnotation?.arguments?.first()?.value?.let { it as? KSType? }?.declaration as? KSClassDeclaration
-        // TODO Add inheritance
-        // val isEntity =
-        //     this.parentDeclaration?.annotations?.any { it.shortName.asString() == Entity::class.simpleName } == true
+        val isEntity =
+            this.parentDeclaration?.annotations?.any { it.shortName.asString() == Entity::class.simpleName } == true
         return PropertyMeta(
             resultName = name,
             isNullable = isNullable,
             isNotNullAnnotated = isNotNull,
+            isEntityAnnotated = isEntity,
             mapper = mapper,
         )
     }
