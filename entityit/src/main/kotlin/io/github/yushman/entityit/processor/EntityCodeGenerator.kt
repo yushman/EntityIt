@@ -5,11 +5,7 @@ import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.google.devtools.ksp.symbol.KSType
 import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.jvm.jvmSuppressWildcards
-import com.squareup.kotlinpoet.ksp.TypeParameterResolver
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
@@ -113,7 +109,9 @@ internal class EntityCodeGenerator(
                 } else {
                     mapperType
                 }
-            val nullabilityOption = isNullableProperty.getNullabilityOption { resultType.relaxedDefaultString()?.let { " ?: $it" } ?: "!!" }
+            val nullabilityOption =
+                isNullableProperty.getNullabilityOption { resultType.relaxedDefaultString()?.let { " ?: $it" } ?: "!!" }
+            logger.info("nullability option = $nullabilityOption")
             entityConstructorBuilder.addParameter(
                 ParameterSpec.builder(resultName, resultType)
                     .apply { if (isNullableProperty) defaultValue("null") }
@@ -134,7 +132,8 @@ internal class EntityCodeGenerator(
         } else {
             val resultType =
                 if (isNullableProperty) type.copy(nullable = true) else type
-            val nullabilityOption = isNullableProperty.getNullabilityOption { resultType.relaxedDefaultString()?.let { " ?: $it" } ?: "!!" }
+            val nullabilityOption =
+                isNullableProperty.getNullabilityOption { resultType.relaxedDefaultString()?.let { " ?: $it" } ?: "!!" }
             entityConstructorBuilder.addParameter(
                 ParameterSpec.builder(resultName, resultType)
                     .apply { if (isNullableProperty) defaultValue("null") }
@@ -260,36 +259,39 @@ internal class EntityCodeGenerator(
         return when (tnNotNull) {
             CHAR -> "\'\\u0000\'"
             CHAR_SEQUENCE,
-                CHAR_ARRAY,
+            CHAR_ARRAY,
             STRING -> "\"\""
 
-            U_BYTE::class.asTypeName(),
-            U_SHORT::class.asTypeName(),
-            U_INT::class.asTypeName(),
-            BYTE::class.asTypeName(),
-            SHORT::class.asTypeName(),
-            INT::class.asTypeName() -> "0"
+            U_BYTE,
+            U_SHORT,
+            U_INT,
+            BYTE,
+            SHORT,
+            INT -> "0"
 
-            U_LONG::class.asTypeName(),
-            LONG::class.asTypeName() -> "0L"
+            U_LONG,
+            LONG -> "0L"
 
-            FLOAT::class.asTypeName() -> "0f"
-            DOUBLE::class.asTypeName() -> "0.0"
-            BOOLEAN::class.asTypeName() -> "false"
+            FLOAT -> "0f"
+            DOUBLE -> "0.0"
+            BOOLEAN -> "false"
 
             else -> null
-        } ?: when((tnNotNull as? ParameterizedTypeName)?.rawType){
+        } ?: when ((tnNotNull as? ParameterizedTypeName)?.rawType) {
             ARRAY -> "emptyArray()"
             COLLECTION,
-                MUTABLE_COLLECTION,
-                ITERABLE,
-                MUTABLE_ITERABLE,
+            MUTABLE_COLLECTION,
+            ITERABLE,
+            MUTABLE_ITERABLE,
             LIST,
             MUTABLE_LIST -> "ArrayList()"
+
             MAP,
             MUTABLE_MAP -> "HashMap()"
+
             SET,
             MUTABLE_SET -> "HashSet()"
+
             else -> null
         }
     }

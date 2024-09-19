@@ -1,5 +1,6 @@
 package io.github.yushman.entityit.annotation
 
+import io.github.yushman.entityit.annotation.Entity.Nullability
 import io.github.yushman.entityit.mapper.EntityMapper
 import kotlin.reflect.KClass
 
@@ -44,5 +45,5 @@ annotation class Entity(
     @Target(AnnotationTarget.FIELD)
     annotation class NotNull
 
-    enum class Nullability { NONE, TRANSIENT, FULL }
+    enum class Nullability { TRANSIENT, FULL }
 }

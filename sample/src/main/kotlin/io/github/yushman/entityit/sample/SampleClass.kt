@@ -4,7 +4,6 @@ import io.github.yushman.entityit.annotation.Entity
 
 @Entity(
     kotlinSerializable = false,
-    nullability = Entity.Nullability.FULL
 )
 internal data class SampleClass(
     @Entity.NotNull
