@@ -1,9 +1,11 @@
 package io.github.yushman.entityit.sample
 
 import io.github.yushman.entityit.annotation.Entity
+import io.github.yushman.entityit.sample.inner.InnerClassNonPackage
 
 @Entity(
     kotlinSerializable = false,
+    generateMappers = true,
 )
 internal data class SampleClass(
     @Entity.NotNull
@@ -22,6 +24,9 @@ internal data class SampleClass(
     val byte: Byte,
     val short: Short,
     val int: Int,
+    val innerClassNonPackage: InnerClassNonPackage,
+    val innerClassSamePackage: InnerClassSamePackage,
+//    val error: SampleMapper, // error - not an Entity marked, not a primitive, has no Mapper by @Entity.MapWith
     val array: Array<Int>?,
     val mlist: Collection<String>?,
     val map: Map<String, String>?,
