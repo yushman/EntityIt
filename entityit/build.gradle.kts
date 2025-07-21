@@ -1,10 +1,9 @@
-import java.util.*
 import com.vanniktech.maven.publish.KotlinJvm
-import com.vanniktech.maven.publish.SonatypeHost
+import java.util.*
 
 plugins {
     kotlin("jvm") version "1.9.21"
-    id("com.vanniktech.maven.publish") version "0.29.0"
+    id("com.vanniktech.maven.publish") version "0.34.0"
     id("signing")
 }
 
@@ -40,7 +39,7 @@ tasks {
 }
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
 
     configure(KotlinJvm(sourcesJar = true))
     coordinates(pGroupId, pArtifactId, pVersion)
